@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Formulir Lokasi Otomatis</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 30px;
+    }
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+    input[type="text"], input[type="submit"] {
+      padding: 10px;
+      width: 300px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Formulir Kehadiran</h2>
+
+  <form id="lokasiForm">
+    <label>Nama:</label>
+    <input type="text" name="nama" required>
+
+    <label>Latitude:</label>
+    <input type="text" id="lat" name="latitude" readonly>
+
+    <label>Longitude:</label>
+    <input type="text" id="lon" name="longitude" readonly>
+
+    <input type="submit" value="Kirim">
+  </form>
+
+  <p id="status"></p>
+
+<script>
+  const webAppURL = "https://script.google.com/macros/s/AKfycbwh79ZVKs4YIpk4gpEdf_tiI-YkCHcxmdpXFcIl6r7rbugvAEAJNxrh8XqALe27g0kg4g/exec";
+
+  function isiLokasi() {
+    const status = document.getElementById('status');
+    if (navigator.geolocation) {
+      status.textContent = "Mengambil lokasi...";
+      navigator.geolocation.getCurrentPosition(
+        function(pos) {
+          document.getElementById('lat').value = pos.coords.latitude;
+          document.getElementById('lon').value = pos.coords.longitude;
+          status.textContent = "Lokasi berhasil diambil.";
+        },
+        function(err) {
+          status.textContent = "Gagal mengambil lokasi: " + err.message;
+        }
+      );
+    } else {
+      status.textContent = "Browser tidak mendukung lokasi.";
+    }
+  }
+
+  window.onload = isiLokasi;
+
+  document.getElementById('lokasiForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const data = {
+      nama: this.nama.value,
+      latitude: this.latitude.value,
+      longitude: this.longitude.value
+    };
+
+    fetch(webAppURL, {
+      method: 'POST',
+      body: JSON.stringify(data),
+      headers: {
+        "Content-Type": "application/json"
+      }
+    })
+    .then(res => res.json())
+    .then(response => {
+      alert("Data berhasil disimpan ke Spreadsheet!");
+      console.log(response);
+    })
+    .catch(err => {
+      alert("Gagal mengirim data.");
+      console.error(err);
+    });
+  });
+</script>
